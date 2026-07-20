@@ -1,0 +1,49 @@
+{
+  "name": "bare-tui-updater",
+  "version": "0.0.1",
+  "description": "A drop-in 'update available' banner widget for bare-tui apps using pear-runtime's OTA updater",
+  "main": "index.js",
+  "exports": {
+    "./package": "./package.json",
+    ".": "./index.js",
+    "./pear": "./pear.js",
+    "./mock": "./mock.js",
+    "./theme": "./theme.js"
+  },
+  "files": [
+    "package.json",
+    "index.js",
+    "updater.js",
+    "theme.js",
+    "pear.js",
+    "mock.js",
+    "README.md"
+  ],
+  "dependencies": {
+    "bare-tui": "^0.0.3"
+  },
+  "devDependencies": {
+    "bare-fs": "^4.7.1",
+    "bare-path": "^3.0.0",
+    "bare-stream": "^2.13.1",
+    "brittle": "^3.19.0",
+    "lunte": "^1.2.0",
+    "prettier": "^3.6.2",
+    "prettier-config-holepunch": "^2.0.0"
+  },
+  "scripts": {
+    "format": "prettier --write . && lunte --fix",
+    "lint": "prettier --check . && lunte",
+    "test": "brittle-bare --coverage test/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/holepunchto/bare-tui-updater.git"
+  },
+  "author": "Holepunch",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/holepunchto/bare-tui-updater/issues"
+  },
+  "homepage": "https://github.com/holepunchto/bare-tui-updater"
+}
