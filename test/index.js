@@ -20,7 +20,9 @@ test('basic state transitions', (t) => {
   const uKeyMsg = {
     type: 'key',
     is: (chord) => chord === 'u',
-    matches: function(...chords) { return chords.some(c => this.is(c)) }
+    matches: function (...chords) {
+      return chords.some((c) => this.is(c))
+    }
   }
   let [u3] = u2.update(uKeyMsg)
   t.is(u3.state, 'applying', 'applying on accept key')
@@ -50,7 +52,9 @@ test('dismiss key', (t) => {
   const escKeyMsg = {
     type: 'key',
     is: (chord) => chord === 'esc',
-    matches: function(...chords) { return chords.some(c => this.is(c)) }
+    matches: function (...chords) {
+      return chords.some((c) => this.is(c))
+    }
   }
   let [u2] = u1.update(escKeyMsg)
   t.is(u2.state, 'idle', 'esc dismisses')
@@ -91,7 +95,9 @@ test('stale command guard', (t) => {
   const escKeyMsg2 = {
     type: 'key',
     is: (chord) => chord === 'esc',
-    matches: function(...chords) { return chords.some(c => this.is(c)) }
+    matches: function (...chords) {
+      return chords.some((c) => this.is(c))
+    }
   }
   let [u2] = u1.update(escKeyMsg2)
   t.is(u2.tag, oldTag + 1, 'tag incremented on dismiss')

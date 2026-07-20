@@ -1,4 +1,4 @@
-const { style, key } = require('bare-tui')
+const { style } = require('bare-tui')
 const spinner = require('bare-tui').spinner
 const theme = require('./theme')
 

@@ -41,7 +41,10 @@ class App {
 
     const footer = style().faint(true).render(' s simulate · q quit')
 
-    return style.joinVertical(style.position.left, ...[header, body, this.upd.view(), footer].filter(Boolean))
+    return style.joinVertical(
+      style.position.left,
+      ...[header, body, this.upd.view(), footer].filter(Boolean)
+    )
   }
 }
 
