@@ -1,6 +1,6 @@
 {
   "name": "bare-tui-updater",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A drop-in 'update available' banner widget for bare-tui apps using pear-runtime's OTA updater",
   "main": "index.js",
   "exports": {
