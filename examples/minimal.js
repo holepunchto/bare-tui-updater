@@ -1,7 +1,16 @@
+// Smallest runnable demo. Every layout option is exposed as a flag:
+//
+//   bare examples/minimal.js                            # boxed, bottom, left
+//   bare examples/minimal.js --no-border --align right   # single line, right
+//   bare examples/minimal.js --position top --border thick
+//
 const { Program, quit, key, style } = require('bare-tui')
 const updater = require('../')
+const { wire } = require('../pear')
 const { mock } = require('../mock')
+const flags = require('./flags')
 
+const layout = flags.parse()
 const mockUpdater = mock()
 
 class App {
@@ -10,7 +19,8 @@ class App {
       mode: 'confirm',
       onAccept: async () => {
         await mockUpdater.apply()
-      }
+      },
+      ...layout
     })
     this.message = 'Press s to simulate an update, q to quit'
   }
@@ -37,16 +47,20 @@ class App {
       .height(8)
       .border(style.borders.rounded)
       .borderForeground('blue')
-      .render(this.message)
+      .render(this.message + '\n\n' + flags.describe(layout))
 
     const footer = style().faint(true).render(' s simulate · q quit')
 
-    return style.joinVertical(
-      style.position.left,
-      ...[header, body, this.upd.view(), footer].filter(Boolean)
-    )
+    // layout() stacks these blocks, inserts the banner at `position`, and drops
+    // it entirely while idle — so it costs zero rows until there's an update.
+    return this.upd.layout(header, body, footer)
   }
 }
 
-const program = new Program(new App())
+const app = new App()
+const program = new Program(app)
+
+// Turn the mock updater's events into the Msgs the widget consumes.
+wire(app.upd, { updater: mockUpdater, send: program.send.bind(program) })
+
 program.run()

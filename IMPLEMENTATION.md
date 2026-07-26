@@ -6,7 +6,7 @@ A complete, production-ready npm package for a drop-in "update available" status
 
 ### Core files
 
-- **`updater.js`** — The main component (235 LOC). Elm-style architecture, state machine with 6 states (idle/downloading/ready/applying/applied/error), always renders to a single line or empty string (satisfies bare-tui's layout-stability rule), keyboard handling for `u` (accept) and `esc` (dismiss), support for `'confirm'` (user-gated) and `'silent'` (auto-apply) modes.
+- **`updater.js`** — The main component. Elm-style architecture, state machine with 6 states (idle/downloading/ready/applying/applied/error), renders to `''` when idle so it costs zero rows, configurable box/single-line/position/alignment (see below), keyboard handling for `u` (accept) and `esc` (dismiss), support for `'confirm'` (user-gated) and `'silent'` (auto-apply) modes.
 - **`pear.js`** — Duck-typed adapter (27 LOC) that translates `pear.updater` events into Msgs the widget consumes. No hard dependency on `pear-runtime` (pure interface typing), works against any `{on('event', fn)}` emitter.
 - **`mock.js`** — Fake updater for demos and tests (48 LOC), mirroring the event shapes of `pear-runtime-updater`. Essential because `applyUpdate()` silently no-ops outside a bundled build, so there's otherwise no way to exercise the full state machine locally.
 - **`theme.js`** — Default style functions and a merge utility (13 LOC), following `bare-tui-form`'s precedent.
@@ -14,9 +14,10 @@ A complete, production-ready npm package for a drop-in "update available" status
 
 ### Examples and tests
 
-- **`examples/minimal.js`** (42 LOC) — Minimal runnable demo with mock updater, shows "press s to simulate, u to apply, q to quit."
-- **`examples/pear.js`** (60 LOC) — Integration example with real `pear.updater` wiring (also uses mock updater for safety in dev).
-- **`test/index.js`** (86 LOC) — Unit tests covering state transitions, error handling, key gating, mock integration, stale-Cmd-guard (the id/tag pattern from bare-tui/spinner.js).
+- **`examples/minimal.js`** — Minimal runnable demo with mock updater, using `layout()`; every layout option is a CLI flag.
+- **`examples/pear.js`** — Integration example with real `pear.updater` wiring (also uses mock updater for safety in dev), showing manual placement + `containerWidth` on resize.
+- **`examples/flags.js`** — Shared flag parser (`--position`, `--align`, `--border`, `--no-border`, `--width`) so both demos can be driven from the command line.
+- **`test/index.js`** — Unit tests covering state transitions, error handling, key gating, mock integration, stale-Cmd-guard (the id/tag pattern from bare-tui/spinner.js), and the layout options (border/width/align/position, `layout()`, `height()`).
 
 ### Documentation
 
@@ -26,17 +27,28 @@ A complete, production-ready npm package for a drop-in "update available" status
 
 ### 1. Non-intrusive height by design
 
-`view()` returns either `''` (idle, 0 rows) or a 3-line bordered block (active). To achieve zero-rows-at-idle, hosts must use `.filter(Boolean)` when splicing the widget into `style.joinVertical(...)` — otherwise `joinVertical` reserves a permanent blank row for the empty string argument:
+`view()` returns `''` when idle (0 rows), a 3-line bordered block when active, or a single line when `border: false`. Two ways to get zero-rows-at-idle:
 
 ```js
-// Wrong: reserves a blank row always:
-style.joinVertical(..., this.upd.view())
+// Preferred — the widget owns placement:
+upd.layout(header, body, footer)
 
-// Correct: 0 rows idle, 3 rows active:
-style.joinVertical(..., ...[..., this.upd.view()].filter(Boolean))
+// Manual — `joinVertical` reserves a row per argument, so filter the empty out:
+style.joinVertical(..., ...[header, body, upd.view(), footer].filter(Boolean))
 ```
 
-This is a call-site fix, not a widget behavior — the widget already does the right thing (`''` when idle). The README documents this explicitly so integrators understand the pattern upfront.
+`height()` exposes the current row count (0/1/3) for hosts that compute fixed panel heights.
+
+### 1a. Layout options
+
+Feedback from the first integration was that the box made an already box-heavy app boxier, and that placement should be the host's choice. So the render path splits into `_text()` (state → string) and `_box()` (string → block), with four options in front of it:
+
+- `border` — `true` (theme border) | `false`/`'none'` (plain line) | a `style.borders` name | raw chars. Invalid names throw at construction rather than rendering garbage.
+- `position` — `'top'`/`'bottom'`, honoured by `layout()` only (manual placement means the host already decided).
+- `align` — `'left'`/`'center'`/`'right'`, implemented as left-padding each banner line rather than `joinVertical(position.right, ...)`, because the latter would right-align the host's blocks too.
+- `containerWidth` — what `align` measures against. `layout()` defaults it to the widest block passed in, which makes `align: 'right'` work without the host tracking terminal width; hosts wanting full-terminal alignment set it on `resize`.
+
+`width` is now the banner's **outer** width (inner = width − 2 border − 2 padding), defaulting to 64 bordered — wide enough for the longest built-in message — and `'auto'` (hug the text) borderless, so right-alignment has no trailing whitespace to fight.
 
 ### 2. State machine with terminal states
 
@@ -116,8 +128,9 @@ bare-tui-updater/
   ├── .prettierrc         # prettier config (holepunch convention)
   ├── .gitignore
   ├── examples/
-  │   ├── minimal.js     # minimal demo
-  │   └── pear.js        # integration example
+  │   ├── flags.js       # shared CLI flag parser for the demos
+  │   ├── minimal.js     # minimal demo (layout())
+  │   └── pear.js        # integration example (manual placement)
   ├── test/
   │   └── index.js       # unit tests
   └── node_modules/

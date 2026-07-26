@@ -5,7 +5,8 @@ const defaultTheme = {
   success: (s) => style().foreground('green').render(s),
   error: (s) => style().foreground('red').render(s),
   hint: (s) => style().faint(true).render(s),
-  border: style.borders.rounded
+  border: style.borders.rounded,
+  borderForeground: 'cyan'
 }
 
 function merge(user) {
